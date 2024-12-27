@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include "hashmap.h"
 
 
 void toLower(char* s) {
@@ -9,14 +10,41 @@ void toLower(char* s) {
     }
 }
 int main(int argc, char* argv[]) {
-    if (argc != 4) {
-        printf("%s", "Usage: [GET/SET] [KEY] [VALUE]");
+    if (argc != 1) {
+        printf("%s", "Usage: No arguments needed");
         return 1;
     }
-    toLower(argv[1]);
-    char* COMMAND = argv[1];
-    char* KEY = argv[2];
-    char* VALUE = argv[3];
+    Hashmap* map = createHashmap(256);
+    char command[256];
+    char key[256];
+    char value[256];
+    while (1) {
+        printf("Enter command: ");
+        scanf("%s", command);
+        toLower(command);
+        if (strcmp(command, "exit") == 0) {
+            printf("%s", "Exited");
+            break;
+        } else if (strcmp(command, "set") == 0) {
+            scanf("%s %s", key, value);
+            int res = insert(map, key, value);
+            printf("%s\n", res == 1 ? "Insertion Successful" : "Error Inserting Key and Value");
+        } else if (strcmp(command, "get") == 0) {
+            scanf("%s", key);
+            char* s = get(map, key);
+            printf("%s\n", s ? s : "Key not found");
+        } else if (strcmp(command, "del") == 0) {
+            scanf("%s", key);
+            int res = deleteKey(map, key);
+            printf("%s\n", res == 1 ? "Key Deleted" : "Error Deleting Key");
+        } else if (strcmp(command, "exists") == 0) {
+            scanf("%s", key);
+            printf("%d\n", exists(map, key));
+        } else {
+            printf("Unknown command\n");
+        }
 
+    }
+    freeHashmap(map);
     return 0;
 }
