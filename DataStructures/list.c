@@ -76,6 +76,18 @@ char* RPOP(List* list) {
     free(node);
     return node_val;
 }
+void freeList(List* list) {
+    DoublyLinkedList* DLL = list->list;
+    DLL_Node* node = DLL->head;
+    while (node) {
+        DLL_Node* tmp = node;
+        node = node->next;
+        free(tmp->elem);
+        free(tmp);
+    }
+    free(DLL);
+    free(list);
+}
 void printList(List* list) {
     DoublyLinkedList* DLL = list->list;
     DLL_Node* current = DLL->head;

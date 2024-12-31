@@ -60,6 +60,7 @@ int main(int argc, char* argv[]) {
         }
 
     }
+    freeList(list);
     freeHashmap(map);
     return 0;
 }
