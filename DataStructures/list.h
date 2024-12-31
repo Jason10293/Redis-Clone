@@ -11,9 +11,9 @@ typedef struct List List;
 List* createList();
 void LPUSH(List* list, char* elem);
 void RPUSH(List* list, char* elem);
-void LPOP_COUNT(List* list, char* elem, int count);
-void RPOP_COUNT(List* list, char* elem, int count);
-void LPOP(List* list, char* elem);
-void RPOP(List* list, char* elem);
+char** LPOP_COUNT(List* list, int count);
+char** RPOP_COUNT(List* list, int count);
+char* LPOP(List* list);
+char* RPOP(List* list);
 void printList(List* list);
 #endif

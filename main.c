@@ -41,9 +41,19 @@ int main(int argc, char* argv[]) {
         } else if (strcmp(command, "exists") == 0) {
             scanf("%s", key);
             printf("%d\n", exists(map, key));
-        } else if (strcmp(command, "LPUSH")) {
+        } else if (strcmp(command, "lpush") == 0) {
             scanf("%s", key);
             LPUSH(list, key);
+            printList(list);
+        } else if (strcmp(command, "rpush") == 0) {
+            scanf("%s", key);
+            RPUSH(list, key);
+            printList(list);
+        } else if (strcmp(command, "lpop") == 0) {
+            printf("%s\n", LPOP(list));
+            printList(list);
+        } else if (strcmp(command, "rpop") == 0) {
+            printf("%s\n", RPOP(list));
             printList(list);
         } else {
             printf("Unknown command\n");

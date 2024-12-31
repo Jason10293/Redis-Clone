@@ -3,7 +3,6 @@
 #include <string.h>
 #include "list.h"
 #include "doublyLinkedList.h"
-
 List* createList() {
     List* list = malloc(sizeof(List));
     DoublyLinkedList* DLL = malloc(sizeof(DoublyLinkedList));
@@ -16,7 +15,7 @@ List* createList() {
 void LPUSH(List* list, char* elem) {
     DoublyLinkedList* DLL = list->list;
     DLL_Node* node = malloc(sizeof(DLL_Node));
-    node->elem = elem;
+    node->elem = strdup(elem);
     node->next = DLL->head;
     node->prev = NULL;
     if (DLL->size != 0) {
@@ -27,7 +26,56 @@ void LPUSH(List* list, char* elem) {
     DLL->head = node;
     DLL->size += 1;
 }
+void RPUSH(List* list, char* elem) {
+    DoublyLinkedList* DLL = list->list;
+    DLL_Node* node = malloc(sizeof(DLL_Node));
+    node->elem = strdup(elem);
+    node->next = NULL;
+    node->prev = DLL->tail;
+    if (DLL->size != 0) {
+        DLL->tail->next = node;
+    } else {
+        DLL->head = node;
+    }
+    DLL->tail = node;
+    DLL->size += 1;
+}
 
+char* LPOP(List* list) {
+    DoublyLinkedList* DLL = list->list;
+    if (DLL->size == 0) {
+        return "No elements in list";
+    }
+    DLL_Node* node = DLL->head;
+    char* node_val = strdup(node->elem);
+    DLL->head = DLL->head->next;
+    if (DLL->head != NULL) {
+        DLL->head->prev = NULL;
+    } else {
+        DLL->tail = NULL;
+    }
+    free(node->elem);
+    free(node);
+    DLL->size -= 1;
+    return node_val;
+}
+char* RPOP(List* list) {
+    DoublyLinkedList* DLL = list->list;
+    if (DLL->size == 0) {
+        return "No elements in the list";
+    }
+    DLL_Node* node = DLL->tail;
+    char* node_val = strdup(node->elem);
+    DLL->tail = DLL->tail->prev;
+    if (!DLL->tail) {
+        DLL->head = NULL;
+    } else {
+        DLL->tail->next = NULL;
+    }
+    DLL->size -= 1;
+    free(node);
+    return node_val;
+}
 void printList(List* list) {
     DoublyLinkedList* DLL = list->list;
     DLL_Node* current = DLL->head;
