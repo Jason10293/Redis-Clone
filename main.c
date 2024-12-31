@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include "hashmap.h"
-
+#include "DataStructures/hashmap.h" // Ensure correct path
+#include "DataStructures/list.h"
 
 void toLower(char* s) {
     for (int i = 0; i < strlen(s); i++) {
@@ -15,6 +15,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     Hashmap* map = createHashmap(256);
+    List* list = createList();
     char command[256];
     char key[256];
     char value[256];
@@ -40,6 +41,10 @@ int main(int argc, char* argv[]) {
         } else if (strcmp(command, "exists") == 0) {
             scanf("%s", key);
             printf("%d\n", exists(map, key));
+        } else if (strcmp(command, "LPUSH")) {
+            scanf("%s", key);
+            LPUSH(list, key);
+            printList(list);
         } else {
             printf("Unknown command\n");
         }

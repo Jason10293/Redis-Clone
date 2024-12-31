@@ -1,30 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "singlyLinkedList.h" // Ensure correct path
+#include "hashmap.h"
 #define DEFAULT_BUCKET_COUNT 256
 #define PRIME_NUM 3411949
-#define CAPACITY_THRESHHOLD 0.
-
-struct Node {
-    char* key;
-    char* value;
-    struct Node* next;
-};
-struct LinkedList {
-    struct Node* head;
-    size_t size;
-};
-
-struct Hashmap {
-    struct LinkedList** buckets; // Each bucket will contain a linked list 
-    int bucket_count;
-    size_t size;
-};
-
-typedef struct LinkedList LinkedList;
-typedef struct Hashmap Hashmap;
-typedef struct Node Node;
+#define CAPACITY_THRESHHOLD 0.75
 
 Hashmap* createHashmap(int bucket_count) {
     LinkedList** bucketsArr = malloc(bucket_count * sizeof(LinkedList*));
@@ -60,10 +41,10 @@ Hashmap* resizeHashmap(Hashmap* map) {
 
     for (int i = 0; i < map->bucket_count; i++) {
         LinkedList* bucket = map->buckets[i];
-        Node* current = bucket->head;
+        SLL_Node* current = bucket->head;
         while (current) {
             int new_index = hashingFunction(current->key) % new_bucket_count;
-            Node* new_node = malloc(sizeof(Node));
+            SLL_Node* new_node = malloc(sizeof(SLL_Node));
             new_node->key = strdup(current->key);
             new_node->value = strdup(current->value);
             new_node->next = new_buckets[new_index]->head;
@@ -87,7 +68,7 @@ int insert(Hashmap* map, char* key, char* value) {
 
     int bucketIndex = hashingFunction(key) % map->bucket_count;
     LinkedList* bucket = map->buckets[bucketIndex];
-    Node* n = bucket->head;
+    SLL_Node* n = bucket->head;
     while (n) { // Update value if the key already exists
         if (strcmp(n->key, key) == 0) {
             free(n->value);
@@ -96,7 +77,7 @@ int insert(Hashmap* map, char* key, char* value) {
         }
         n = n->next;
     }
-    n = malloc(sizeof(Node));
+    n = malloc(sizeof(SLL_Node));
     if (!n) return -1; // Check if memory allocation failed
     n->key = strdup(key);
     if (!n->key) {
@@ -119,7 +100,7 @@ int insert(Hashmap* map, char* key, char* value) {
 char* get(Hashmap* map, char* key) {
     int bucketIndex = hashingFunction(key) % map->bucket_count;
     LinkedList* bucket = map->buckets[bucketIndex];
-    Node* n = bucket->head;
+    SLL_Node* n = bucket->head;
     while (n) {
         if (strcmp(key, n->key) == 0) {
             return n->value;
@@ -132,7 +113,7 @@ char* get(Hashmap* map, char* key) {
 void freeHashmap(Hashmap* map) {
     for (int i = 0; i < map->bucket_count; i++) { // Fix loop condition
         LinkedList* bucket = map->buckets[i];
-        Node* tmp = bucket->head;
+        SLL_Node* tmp = bucket->head;
         while (bucket->head) {
             tmp = bucket->head;
             bucket->head = bucket->head->next;
@@ -149,8 +130,8 @@ void freeHashmap(Hashmap* map) {
 int deleteKey(Hashmap* map, char* key) {
     int bucketIndex = hashingFunction(key) % map->bucket_count;
     LinkedList* bucket = map->buckets[bucketIndex];
-    Node* n = bucket->head;
-    Node* prev = NULL;
+    SLL_Node* n = bucket->head;
+    SLL_Node* prev = NULL;
 
     while (n) {
         if (strcmp(n->key, key) == 0) {
@@ -174,7 +155,7 @@ int deleteKey(Hashmap* map, char* key) {
 int exists(Hashmap* map, char* key) {
     int bucketIndex = hashingFunction(key) % map->bucket_count;
     LinkedList* bucket = map->buckets[bucketIndex];
-    Node* n = bucket->head;
+    SLL_Node* n = bucket->head;
     while (n) {
         if (strcmp(n->key, key) == 0) {
             return 1;

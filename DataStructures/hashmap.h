@@ -3,28 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-struct Node {
-    char* key;
-    char* value;
-    struct Node* next;
-};
-struct LinkedList {
-    struct Node* head;
-    size_t size;
-};
+#include "singlyLinkedList.h"
 
 struct Hashmap {
     struct LinkedList** buckets; // Each bucket will contain a linked list 
     size_t size;
+    int bucket_count;
 };
 
-typedef struct LinkedList LinkedList;
 typedef struct Hashmap Hashmap;
-typedef struct Node Node;
 
 Hashmap* createHashmap(int bucket_count);
-
 
 long hashingFunction(char* s);
 

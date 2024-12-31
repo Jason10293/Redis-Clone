@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "hashmap.h"
+#include "../DataStructures/hashmap.h"
 
-#define NUM_ITERATIONS 50
+#define NUM_ITERATIONS 200
 
 void measureInsertionPerformance(Hashmap* map, char** keys, int numOperations) {
     char value[256];
@@ -16,10 +16,6 @@ void measureInsertionPerformance(Hashmap* map, char** keys, int numOperations) {
         }
         clock_t end = clock();
         total_time += ((double)(end - start)) / CLOCKS_PER_SEC;
-        // Clear the map for the next iteration
-        for (int i = 0; i < numOperations; i++) {
-            deleteKey(map, keys[i]);
-        }
     }
     double avg_time = total_time / NUM_ITERATIONS;
     printf("Average insertion time for %d elements over %d runs: %f seconds\n", numOperations, NUM_ITERATIONS, avg_time);
@@ -30,22 +26,12 @@ void measureInsertionPerformance(Hashmap* map, char** keys, int numOperations) {
 void measureRetrievalPerformance(Hashmap* map, char** keys, int numOperations) {
     double total_time = 0.0;
     for (int j = 0; j < NUM_ITERATIONS; j++) {
-        // Insert elements before retrieval
-        char value[256];
-        for (int i = 0; i < numOperations; i++) {
-            sprintf(value, "value%d", i);
-            insert(map, keys[i], value);
-        }
         clock_t start = clock();
         for (int i = 0; i < numOperations; i++) {
             get(map, keys[i]);
         }
         clock_t end = clock();
         total_time += ((double)(end - start)) / CLOCKS_PER_SEC;
-        // Clear the map for the next iteration
-        for (int i = 0; i < numOperations; i++) {
-            deleteKey(map, keys[i]);
-        }
     }
     double avg_time = total_time / NUM_ITERATIONS;
     printf("Average retrieval time for %d elements over %d runs: %f seconds\n", numOperations, NUM_ITERATIONS, avg_time);
@@ -56,12 +42,6 @@ void measureRetrievalPerformance(Hashmap* map, char** keys, int numOperations) {
 void measureDeletionPerformance(Hashmap* map, char** keys, int numOperations) {
     double total_time = 0.0;
     for (int j = 0; j < NUM_ITERATIONS; j++) {
-        // Insert elements before deletion
-        char value[256];
-        for (int i = 0; i < numOperations; i++) {
-            sprintf(value, "value%d", i);
-            insert(map, keys[i], value);
-        }
         clock_t start = clock();
         for (int i = 0; i < numOperations; i++) {
             deleteKey(map, keys[i]);
@@ -82,14 +62,14 @@ char** readWordsFromFile(const char* filename, int* numWords) {
         exit(EXIT_FAILURE);
     }
 
-    char** words = malloc(sizeof(char*) * 600000); // assuming max 200k words if only every fifth word is stored
+    char** words = malloc(sizeof(char*) * 600000); // assuming max 600k words if only every tenth word is stored
     char buffer[256];
     int count = 0;
     int lineNumber = 0;
 
     while (fgets(buffer, sizeof(buffer), file)) {
         buffer[strcspn(buffer, "\n")] = '\0'; // remove newline character
-        if (lineNumber % 5 == 0) { // Only store every fifth word
+        if (lineNumber % 3 == 0) {
             words[count] = strdup(buffer);
             count++;
         }
@@ -119,7 +99,7 @@ int main() {
 
 
 /*
-Oeration  |	Element | No Resizing(s) | No Resizing (µs/Op) | w/ Resizing(s)	| w/ Resizing(µs/Op)
+Operation  |	Element | No Resizing(s) | No Resizing (µs/Op) | w/ Resizing(s)	| w/ Resizing(µs/Op)
 Insertion	46,655	    0.108540	       2.326439	            0.051480	        1.103419
 Retrieval	46,655	    0.164280	       3.521166	            0.009720	        0.208338
 Deletion	46,655	    0.365800	       7.840532	            0.027260	        0.584289
