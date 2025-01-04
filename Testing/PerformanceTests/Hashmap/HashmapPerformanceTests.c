@@ -1,16 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "../DataStructures/Hashmap.h"
+#include "../../DataStructures/Hashmap.h"
 
 #define NUM_ITERATIONS 200
 
-void measureInsertionPerformance(Hashmap* map, char** keys, int numOperations) {
+void measureInsertionPerformance(Hashmap *map, char **keys, int numOperations)
+{
     char value[256];
     double total_time = 0.0;
-    for (int j = 0; j < NUM_ITERATIONS; j++) {
+    for (int j = 0; j < NUM_ITERATIONS; j++)
+    {
         clock_t start = clock();
-        for (int i = 0; i < numOperations; i++) {
+        for (int i = 0; i < numOperations; i++)
+        {
             sprintf(value, "value%d", i);
             insert(map, keys[i], value);
         }
@@ -23,11 +26,14 @@ void measureInsertionPerformance(Hashmap* map, char** keys, int numOperations) {
     printf("Average time in microseconds per operation: %f\n\n", time_per_op);
 }
 
-void measureRetrievalPerformance(Hashmap* map, char** keys, int numOperations) {
+void measureRetrievalPerformance(Hashmap *map, char **keys, int numOperations)
+{
     double total_time = 0.0;
-    for (int j = 0; j < NUM_ITERATIONS; j++) {
+    for (int j = 0; j < NUM_ITERATIONS; j++)
+    {
         clock_t start = clock();
-        for (int i = 0; i < numOperations; i++) {
+        for (int i = 0; i < numOperations; i++)
+        {
             get(map, keys[i]);
         }
         clock_t end = clock();
@@ -39,11 +45,14 @@ void measureRetrievalPerformance(Hashmap* map, char** keys, int numOperations) {
     printf("Average time in microseconds per operation: %f\n\n", time_per_op);
 }
 
-void measureDeletionPerformance(Hashmap* map, char** keys, int numOperations) {
+void measureDeletionPerformance(Hashmap *map, char **keys, int numOperations)
+{
     double total_time = 0.0;
-    for (int j = 0; j < NUM_ITERATIONS; j++) {
+    for (int j = 0; j < NUM_ITERATIONS; j++)
+    {
         clock_t start = clock();
-        for (int i = 0; i < numOperations; i++) {
+        for (int i = 0; i < numOperations; i++)
+        {
             deleteKey(map, keys[i]);
         }
         clock_t end = clock();
@@ -55,21 +64,25 @@ void measureDeletionPerformance(Hashmap* map, char** keys, int numOperations) {
     printf("Average time in microseconds per operation: %f\n\n", time_per_op);
 }
 
-char** readWordsFromFile(const char* filename, int* numWords) {
-    FILE* file = fopen(filename, "r");
-    if (!file) {
+char **readWordsFromFile(const char *filename, int *numWords)
+{
+    FILE *file = fopen(filename, "r");
+    if (!file)
+    {
         perror("Failed to open file");
         exit(EXIT_FAILURE);
     }
 
-    char** words = malloc(sizeof(char*) * 600000); // assuming max 600k words if only every tenth word is stored
+    char **words = malloc(sizeof(char *) * 600000); // assuming max 600k words if only every tenth word is stored
     char buffer[256];
     int count = 0;
     int lineNumber = 0;
 
-    while (fgets(buffer, sizeof(buffer), file)) {
+    while (fgets(buffer, sizeof(buffer), file))
+    {
         buffer[strcspn(buffer, "\n")] = '\0'; // remove newline character
-        if (lineNumber % 3 == 0) {
+        if (lineNumber % 3 == 0)
+        {
             words[count] = strdup(buffer);
             count++;
         }
@@ -81,22 +94,23 @@ char** readWordsFromFile(const char* filename, int* numWords) {
     return words;
 }
 
-int main() {
-    Hashmap* map = createHashmap(256);
+int main()
+{
+    Hashmap *map = createHashmap(256);
     int numOperations;
-    char** keys = readWordsFromFile("words.txt", &numOperations);
+    char **keys = readWordsFromFile("words.txt", &numOperations);
     measureInsertionPerformance(map, keys, numOperations);
     measureRetrievalPerformance(map, keys, numOperations);
     measureDeletionPerformance(map, keys, numOperations);
 
-    for (int i = 0; i < numOperations; i++) {
+    for (int i = 0; i < numOperations; i++)
+    {
         free(keys[i]);
     }
     free(keys);
     freeHashmap(map);
     return 0;
 }
-
 
 /*
 Operation  |	Element | No Resizing(s) | No Resizing (µs/Op) | w/ Resizing(s)	| w/ Resizing(µs/Op)
