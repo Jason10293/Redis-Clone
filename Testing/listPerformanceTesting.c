@@ -4,8 +4,8 @@
 #include <string.h>
 #include "../DataStructures/list.h" // Assuming list.h contains the list implementation
 
-#define NUM_ITERATIONS 200
-
+#define NUM_ITERATIONS 100
+#define LINE_INTERVAL 2
 void measureLPUSHPerformance(List* list, char** words, int numWords) {
     double total_time = 0.0;
     for (int j = 0; j < NUM_ITERATIONS; j++) {
@@ -43,7 +43,10 @@ void measureLPOPPerformance(List* list, int numOperations) {
     for (int j = 0; j < NUM_ITERATIONS; j++) {
         clock_t start = clock();
         for (int i = 0; i < numOperations; i++) {
-            LPOP(list);
+            char* value = LPOP(list);
+            if (value) {
+                free(value);
+            }
         }
         clock_t end = clock();
         total_time += ((double)(end - start)) / CLOCKS_PER_SEC;
@@ -59,7 +62,10 @@ void measureRPOPPerformance(List* list, int numOperations) {
     for (int j = 0; j < NUM_ITERATIONS; j++) {
         clock_t start = clock();
         for (int i = 0; i < numOperations; i++) {
-            RPOP(list);
+            char* value = RPOP(list);
+            if (value) {
+                free(value);
+            }
         }
         clock_t end = clock();
         total_time += ((double)(end - start)) / CLOCKS_PER_SEC;
@@ -83,7 +89,7 @@ char** readWordsFromFile(const char* filename, int* numWords) {
 
     while (fgets(buffer, sizeof(buffer), file)) {
         buffer[strcspn(buffer, "\n")] = '\0'; // remove newline character
-        if (lineNumber % 10 == 0) {
+        if (lineNumber % LINE_INTERVAL == 0) {
             words[count] = strdup(buffer);
             count++;
         }
@@ -100,8 +106,8 @@ int main() {
     char** words = readWordsFromFile("words.txt", &numWords);
 
     measureLPUSHPerformance(list, words, numWords);
-    measureRPUSHPerformance(list, words, numWords);
     measureLPOPPerformance(list, numWords);
+    measureRPUSHPerformance(list, words, numWords);
     measureRPOPPerformance(list, numWords);
 
     for (int i = 0; i < numWords; i++) {
@@ -111,3 +117,33 @@ int main() {
     freeList(list);
     return 0;
 }
+
+/*
+| **Operation**  | **Number of Elements** | **Average Time (seconds)** | **Average Time per Operation (microseconds)** |
+|----------------|------------------------|----------------------------|-----------------------------------------------|
+| **LPUSH**      | 15552                  | 0.001330                   | 0.085520                                      |
+|                | 31104                  | 0.003405                   | 0.109471                                      |
+|                | 46655                  | 0.005280                   | 0.113171                                      |
+|                | 93310                  | 0.012850                   | 0.137713                                      |
+|                | 155517                 | 0.021150                   | 0.135998                                      |
+|                | 466549                 | 0.089635                   | 0.192123                                      |
+| **LPOP**       | 15552                  | 0.015425                   | 0.991834                                      |
+|                | 31104                  | 0.071345                   | 2.293756                                      |
+|                | 46655                  | 0.181610                   | 3.892616                                      |
+|                | 93310                  | 0.102635                   | 1.099936                                      |
+|                | 155517                 | 0.277090                   | 1.781734                                      |
+|                | 466549                 | 1.157240                   | 2.480425                                      |
+| **RPUSH**      | 15552                  | 0.004960                   | 0.318930                                      |
+|                | 31104                  | 0.019420                   | 0.624357                                      |
+|                | 46655                  | 0.019205                   | 0.411639                                      |
+|                | 93310                  | 0.013520                   | 0.144893                                      |
+|                | 155517                 | 0.020405                   | 0.131208                                      |
+|                | 466549                 | 0.139055                   | 0.298050                                      |
+| **RPOP**       | 15552                  | 0.015800                   | 1.015947                                      |
+|                | 31104                  | 0.045680                   | 1.468621                                      |
+|                | 46655                  | 0.083220                   | 1.783732                                      |
+|                | 93310                  | 0.100440                   | 1.076412                                      |
+|                | 155517                 | 0.229725                   | 1.477170                                      |
+|                | 466549                 | 0.447360                   | 0.958870                                      |
+
+*/

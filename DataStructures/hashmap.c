@@ -50,7 +50,12 @@ Hashmap* resizeHashmap(Hashmap* map) {
             new_node->next = new_buckets[new_index]->head;
             new_buckets[new_index]->head = new_node;
             new_buckets[new_index]->size++;
+
+            SLL_Node* temp = current;
             current = current->next;
+            free(temp->key);
+            free(temp->value);
+            free(temp);
         }
         free(bucket);
     }
@@ -96,6 +101,7 @@ int insert(Hashmap* map, char* key, char* value) {
     map->size += 1; // Increment map size after successful insertion
     return 1;
 }
+
 
 char* get(Hashmap* map, char* key) {
     int bucketIndex = hashingFunction(key) % map->bucket_count;

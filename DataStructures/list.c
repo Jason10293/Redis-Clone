@@ -73,6 +73,7 @@ char* RPOP(List* list) {
         DLL->tail->next = NULL;
     }
     DLL->size -= 1;
+    free(node->elem);
     free(node);
     return node_val;
 }
