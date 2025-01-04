@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "singlyLinkedList.h" // Ensure correct path
-#include "hashmap.h"
+#include "SinglyLinkedList.h" // Ensure correct path
+#include "Hashmap.h"
 #define DEFAULT_BUCKET_COUNT 256
 #define PRIME_NUM 3411949
 #define CAPACITY_THRESHHOLD 0.75

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "list.h"
-#include "doublyLinkedList.h"
+#include "List.h"
+#include "DoublyLinkedList.h"
 List* createList() {
     List* list = malloc(sizeof(List));
     DoublyLinkedList* DLL = malloc(sizeof(DoublyLinkedList));

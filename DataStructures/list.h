@@ -1,6 +1,6 @@
 #ifndef LIST_H
 #define LIST_H
-#include "doublyLinkedList.h"
+#include "DoublyLinkedList.h"
 
 struct List {
     DoublyLinkedList* list;

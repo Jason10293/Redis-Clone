@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "../DataStructures/hashmap.h"
+#include "../DataStructures/Hashmap.h"
 
 #define NUM_ITERATIONS 200
 

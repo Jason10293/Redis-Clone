@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#include "../DataStructures/list.h" // Assuming list.h contains the list implementation
+#include "../DataStructures/List.h" // Assuming list.h contains the list implementation
 
 #define NUM_ITERATIONS 100
 #define LINE_INTERVAL 2
