@@ -17,4 +17,6 @@ char* LPOP(List* list);
 char* RPOP(List* list);
 void freeList(List* list);
 void printList(List* list);
+
+
 #endif
