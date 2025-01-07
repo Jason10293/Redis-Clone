@@ -5,18 +5,19 @@
 #include <stddef.h>
 #include "Hashmap.h"
 
-struct Hashset{
+struct Hashset {
     Hashmap* map;
 };
 
 typedef struct Hashset Hashset;
 Hashset* createHashset();
 void freeHashset(Hashset* set);
-void SADD(Hashset* set, char* elem);
-void SREM(Hashset* set, char* elem);
+int SADD(Hashset* set, char* elem);
+int SREM(Hashset* set, char* elem);
 int SISMEMBER(Hashset* set, char* elem);
-char* SINTER(Hashset* set1, Hashset* set2);
+Hashset* SINTER(Hashset* set1, Hashset* set2);
 int SCARD(Hashset*);
+void printHashset(Hashset* set);
 
 
 #endif

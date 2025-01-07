@@ -4,9 +4,9 @@
 #include <string.h>
 #include "../../../DataStructures/List.h" // Assuming list.h contains the list implementation
 
-#define NUM_ITERATIONS 100
-#define LINE_INTERVAL 2
-void measureLPUSHPerformance(List *list, char **words, int numWords)
+#define NUM_ITERATIONS 200
+#define LINE_INTERVAL 1
+void measureLPUSHPerformance(List* list, char** words, int numWords)
 {
     double total_time = 0.0;
     for (int j = 0; j < NUM_ITERATIONS; j++)
@@ -25,7 +25,7 @@ void measureLPUSHPerformance(List *list, char **words, int numWords)
     printf("Average time in microseconds per operation: %f\n\n", time_per_op);
 }
 
-void measureRPUSHPerformance(List *list, char **words, int numWords)
+void measureRPUSHPerformance(List* list, char** words, int numWords)
 {
     double total_time = 0.0;
     for (int j = 0; j < NUM_ITERATIONS; j++)
@@ -44,7 +44,7 @@ void measureRPUSHPerformance(List *list, char **words, int numWords)
     printf("Average time in microseconds per operation: %f\n\n", time_per_op);
 }
 
-void measureLPOPPerformance(List *list, int numOperations)
+void measureLPOPPerformance(List* list, int numOperations)
 {
     double total_time = 0.0;
     for (int j = 0; j < NUM_ITERATIONS; j++)
@@ -52,7 +52,7 @@ void measureLPOPPerformance(List *list, int numOperations)
         clock_t start = clock();
         for (int i = 0; i < numOperations; i++)
         {
-            char *value = LPOP(list);
+            char* value = LPOP(list);
             if (value)
             {
                 free(value);
@@ -67,7 +67,7 @@ void measureLPOPPerformance(List *list, int numOperations)
     printf("Average time in microseconds per operation: %f\n\n", time_per_op);
 }
 
-void measureRPOPPerformance(List *list, int numOperations)
+void measureRPOPPerformance(List* list, int numOperations)
 {
     double total_time = 0.0;
     for (int j = 0; j < NUM_ITERATIONS; j++)
@@ -75,7 +75,7 @@ void measureRPOPPerformance(List *list, int numOperations)
         clock_t start = clock();
         for (int i = 0; i < numOperations; i++)
         {
-            char *value = RPOP(list);
+            char* value = RPOP(list);
             if (value)
             {
                 free(value);
@@ -89,16 +89,16 @@ void measureRPOPPerformance(List *list, int numOperations)
     double time_per_op = (avg_time * 1000000.0) / numOperations;
     printf("Average time in microseconds per operation: %f\n\n", time_per_op);
 }
-char **readWordsFromFile(const char *filename, int *numWords)
+char** readWordsFromFile(const char* filename, int* numWords)
 {
-    FILE *file = fopen(filename, "r");
+    FILE* file = fopen(filename, "r");
     if (!file)
     {
         perror("Failed to open file");
         exit(EXIT_FAILURE);
     }
 
-    char **words = malloc(sizeof(char *) * 600000); // assuming max 600k words if only every tenth word is stored
+    char** words = malloc(sizeof(char*) * 600000); // assuming max 600k words if only every tenth word is stored
     char buffer[256];
     int count = 0;
     int lineNumber = 0;
@@ -120,9 +120,9 @@ char **readWordsFromFile(const char *filename, int *numWords)
 }
 int main()
 {
-    List *list = createList();
+    List* list = createList();
     int numWords;
-    char **words = readWordsFromFile("words.txt", &numWords);
+    char** words = readWordsFromFile("../words.txt", &numWords);
 
     measureLPUSHPerformance(list, words, numWords);
     measureLPOPPerformance(list, numWords);
