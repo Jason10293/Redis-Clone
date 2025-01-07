@@ -5,7 +5,7 @@
 #include "../../../DataStructures/Hashset.h" // Assuming the hashset implementation is in "Hashset.h"
 
 #define NUM_ITERATIONS 20
-#define LINE_INTERVAL 20
+#define LINE_INTERVAL 60
 
 void measureSADDPerformance(Hashset* set, char** elements, int numElements) {
     double total_time = 0.0;

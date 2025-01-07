@@ -18,6 +18,7 @@ int SISMEMBER(Hashset* set, char* elem);
 Hashset* SINTER(Hashset* set1, Hashset* set2);
 int SCARD(Hashset*);
 void printHashset(Hashset* set);
+void testSADDResizing();
 
 
 #endif

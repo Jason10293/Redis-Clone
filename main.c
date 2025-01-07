@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h> // Added for memory management functions
 #include "DataStructures/Hashmap.h" // Ensure correct path
 #include "DataStructures/List.h"
 #include "DataStructures/Hashset.h"
@@ -84,9 +85,9 @@ int main(int argc, char* argv[]) {
             SADD(set1, "z");
             Hashset* inter = SINTER(set, set1);
             printHashset(inter);
-        }
-
-        else {
+        } else if (strcmp(command, "hello") == 0) { // Changed to lowercase to match other commands
+            testSADDResizing();
+        } else {
             printf("Unknown command\n");
         }
 
