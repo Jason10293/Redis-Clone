@@ -22,13 +22,17 @@ int SADD(Hashset* set, char* elem) {
     }
     int bucketIndex = hashingFunction(elem) % set->map->bucket_count;
     LinkedList* bucket = set->map->buckets[bucketIndex];
-    if (bucket->size != 0) {
-        return -1;
+    SLL_Node* current = bucket->head;
+    while (current != NULL) {
+        if (strcmp(current->key, elem) == 0) {
+            return 0;
+        }
+        current = current->next;
     }
     SLL_Node* node = malloc(sizeof(SLL_Node));
     node->key = strdup(elem);
     node->value = NULL;
-    node->next = NULL;
+    node->next = bucket->head;
     bucket->head = node;
     bucket->size++;
     set->map->size++;
@@ -95,44 +99,4 @@ void printHashset(Hashset* set) {
         }
     }
 }
-
-void testSADDResizing() {
-    Hashset* set = createHashset();
-    int initialBucketCount = set->map->bucket_count;
-    int numElementsToAdd = (int)(initialBucketCount * CAPACITY_THRESHHOLD) + 1;
-
-    // Add elements to trigger resize
-    for (int i = 0; i < numElementsToAdd; i++) {
-        char elem[10];
-        sprintf(elem, "elem%d", i);
-        SADD(set, elem);
-    }
-
-    // Check if the hashset resized
-    if (set->map->bucket_count > initialBucketCount) {
-        printf("Resize successful. New bucket count: %d\n", set->map->bucket_count);
-    } else {
-        printf("Resize failed.\n");
-    }
-
-    // Verify all elements are still present
-    int allElementsPresent = 1;
-    for (int i = 0; i < numElementsToAdd; i++) {
-        char elem[10];
-        sprintf(elem, "elem%d", i);
-        if (!SISMEMBER(set, elem)) {
-            allElementsPresent = 0;
-            printf("Element %s missing after resize.\n", elem);
-        }
-    }
-
-    if (allElementsPresent) {
-        printf("All elements present after resize.\n");
-    } else {
-        printf("Some elements missing after resize.\n");
-    }
-
-    freeHashset(set);
-}
-
 

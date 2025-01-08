@@ -1,3 +1,4 @@
+//gcc -o hashsetPT HashsetPerformanceTest.c -I../../../DataStructures ../../../DataStructures/Hashset.c ../../../DataStructures/Hashmap.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -5,7 +6,7 @@
 #include "../../../DataStructures/Hashset.h" // Assuming the hashset implementation is in "Hashset.h"
 
 #define NUM_ITERATIONS 20
-#define LINE_INTERVAL 60
+#define LINE_INTERVAL 1
 
 void measureSADDPerformance(Hashset* set, char** elements, int numElements) {
     double total_time = 0.0;

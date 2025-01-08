@@ -46,7 +46,9 @@ Hashmap* resizeHashmap(Hashmap* map) {
             int new_index = hashingFunction(current->key) % new_bucket_count;
             SLL_Node* new_node = malloc(sizeof(SLL_Node));
             new_node->key = strdup(current->key);
-            new_node->value = strdup(current->value);
+            if (new_node->value) {
+                new_node->value = strdup(current->value);
+            }
             new_node->next = new_buckets[new_index]->head;
             new_buckets[new_index]->head = new_node;
             new_buckets[new_index]->size++;
@@ -145,8 +147,7 @@ int deleteKey(Hashmap* map, char* key)
         if (strcmp(n->key, key) == 0) {
             if (prev) {
                 prev->next = n->next;
-            }
-            else {
+            } else {
                 bucket->head = n->next;
             }
             free(n->key);

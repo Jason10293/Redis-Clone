@@ -11,16 +11,93 @@ void toLower(char* s) {
         s[i] = tolower(s[i]);
     }
 }
+
+typedef struct {
+    char name[256];
+    Hashmap* map;
+} NamedHashmap;
+
+typedef struct {
+    char name[256];
+    List* list;
+} NamedList;
+
+typedef struct {
+    char name[256];
+    Hashset* set;
+} NamedHashset;
+
+typedef struct {
+    NamedHashmap* maps;
+    int mapCount;
+    NamedList* lists;
+    int listCount;
+    NamedHashset* sets;
+    int setCount;
+} DataStructures;
+
+DataStructures* createDataStructures() {
+    DataStructures* ds = (DataStructures*)malloc(sizeof(DataStructures));
+    ds->maps = NULL;
+    ds->mapCount = 0;
+    ds->lists = NULL;
+    ds->listCount = 0;
+    ds->sets = NULL;
+    ds->setCount = 0;
+    return ds;
+}
+
+void freeDataStructures(DataStructures* ds) {
+    for (int i = 0; i < ds->mapCount; i++) {
+        freeHashmap(ds->maps[i].map);
+    }
+    for (int i = 0; i < ds->listCount; i++) {
+        freeList(ds->lists[i].list);
+    }
+    for (int i = 0; i < ds->setCount; i++) {
+        freeHashset(ds->sets[i].set);
+    }
+    free(ds->maps);
+    free(ds->lists);
+    free(ds->sets);
+    free(ds);
+}
+
+NamedHashmap* findHashmap(DataStructures* ds, const char* name) {
+    for (int i = 0; i < ds->mapCount; i++) {
+        if (strcmp(ds->maps[i].name, name) == 0) {
+            return &ds->maps[i];
+        }
+    }
+    return NULL;
+}
+
+NamedList* findList(DataStructures* ds, const char* name) {
+    for (int i = 0; i < ds->listCount; i++) {
+        if (strcmp(ds->lists[i].name, name) == 0) {
+            return &ds->lists[i];
+        }
+    }
+    return NULL;
+}
+
+NamedHashset* findHashset(DataStructures* ds, const char* name) {
+    for (int i = 0; i < ds->setCount; i++) {
+        if (strcmp(ds->sets[i].name, name) == 0) {
+            return &ds->sets[i];
+        }
+    }
+    return NULL;
+}
+
 int main(int argc, char* argv[]) {
     if (argc != 1) {
         printf("%s", "Usage: No arguments needed");
         return 1;
     }
-    Hashmap* map = createHashmap(256);
-    List* list = createList();
-    Hashset* set = createHashset();
-    Hashset* set1 = createHashset();
+    DataStructures* ds = createDataStructures();
     char command[256];
+    char dsName[256];
     char key[256];
     char value[256];
     while (1) {
@@ -31,69 +108,140 @@ int main(int argc, char* argv[]) {
             printf("%s", "Exited");
             break;
         } else if (strcmp(command, "set") == 0) {
-            scanf("%s %s", key, value);
-            int res = insert(map, key, value);
+            scanf("%s %s %s", dsName, key, value);
+            NamedHashmap* namedMap = findHashmap(ds, dsName);
+            if (!namedMap) {
+                ds->maps = realloc(ds->maps, (ds->mapCount + 1) * sizeof(NamedHashmap));
+                strcpy(ds->maps[ds->mapCount].name, dsName);
+                ds->maps[ds->mapCount].map = createHashmap(256);
+                namedMap = &ds->maps[ds->mapCount];
+                ds->mapCount++;
+            }
+            int res = insert(namedMap->map, key, value);
             printf("%s\n", res == 1 ? "Insertion Successful" : "Error Inserting Key and Value");
         } else if (strcmp(command, "get") == 0) {
-            scanf("%s", key);
-            char* s = get(map, key);
-            printf("%s\n", s ? s : "Key not found");
+            scanf("%s %s", dsName, key);
+            NamedHashmap* namedMap = findHashmap(ds, dsName);
+            if (!namedMap) {
+                printf("Key not found\n");
+            } else {
+                char* s = get(namedMap->map, key);
+                printf("%s\n", s ? s : "Key not found");
+            }
         } else if (strcmp(command, "del") == 0) {
-            scanf("%s", key);
-            int res = deleteKey(map, key);
-            printf("%s\n", res == 1 ? "Key Deleted" : "Error Deleting Key");
+            scanf("%s %s", dsName, key);
+            NamedHashmap* namedMap = findHashmap(ds, dsName);
+            if (!namedMap) {
+                printf("Error Deleting Key\n");
+            } else {
+                int res = deleteKey(namedMap->map, key);
+                printf("%s\n", res == 1 ? "Key Deleted" : "Error Deleting Key");
+            }
         } else if (strcmp(command, "exists") == 0) {
-            scanf("%s", key);
-            printf("%d\n", exists(map, key));
+            scanf("%s %s", dsName, key);
+            NamedHashmap* namedMap = findHashmap(ds, dsName);
+            if (!namedMap) {
+                printf("0\n");
+            } else {
+                printf("%d\n", exists(namedMap->map, key));
+            }
         } else if (strcmp(command, "lpush") == 0) {
-            scanf("%s", key);
-            LPUSH(list, key);
-            printList(list);
+            scanf("%s %s", dsName, key);
+            NamedList* namedList = findList(ds, dsName);
+            if (!namedList) {
+                ds->lists = realloc(ds->lists, (ds->listCount + 1) * sizeof(NamedList));
+                strcpy(ds->lists[ds->listCount].name, dsName);
+                ds->lists[ds->listCount].list = createList();
+                namedList = &ds->lists[ds->listCount];
+                ds->listCount++;
+            }
+            LPUSH(namedList->list, key);
+            printList(namedList->list);
         } else if (strcmp(command, "rpush") == 0) {
-            scanf("%s", key);
-            RPUSH(list, key);
-            printList(list);
+            scanf("%s %s", dsName, key);
+            NamedList* namedList = findList(ds, dsName);
+            if (!namedList) {
+                ds->lists = realloc(ds->lists, (ds->listCount + 1) * sizeof(NamedList));
+                strcpy(ds->lists[ds->listCount].name, dsName);
+                ds->lists[ds->listCount].list = createList();
+                namedList = &ds->lists[ds->listCount];
+                ds->listCount++;
+            }
+            RPUSH(namedList->list, key);
+            printList(namedList->list);
         } else if (strcmp(command, "lpop") == 0) {
-            printf("%s\n", LPOP(list));
-            printList(list);
+            scanf("%s", dsName);
+            NamedList* namedList = findList(ds, dsName);
+            if (!namedList) {
+                printf("List is empty\n");
+            } else {
+                printf("%s\n", LPOP(namedList->list));
+                printList(namedList->list);
+            }
         } else if (strcmp(command, "rpop") == 0) {
-            printf("%s\n", RPOP(list));
-            printList(list);
+            scanf("%s", dsName);
+            NamedList* namedList = findList(ds, dsName);
+            if (!namedList) {
+                printf("List is empty\n");
+            } else {
+                printf("%s\n", RPOP(namedList->list));
+                printList(namedList->list);
+            }
         } else if (strcmp(command, "sadd") == 0) {
-            scanf("%s", key);
-            int ans = SADD(set, key);
-            printHashset(set);
+            scanf("%s %s", dsName, key);
+            NamedHashset* namedSet = findHashset(ds, dsName);
+            if (!namedSet) {
+                ds->sets = realloc(ds->sets, (ds->setCount + 1) * sizeof(NamedHashset));
+                strcpy(ds->sets[ds->setCount].name, dsName);
+                ds->sets[ds->setCount].set = createHashset();
+                namedSet = &ds->sets[ds->setCount];
+                ds->setCount++;
+            }
+            int ans = SADD(namedSet->set, key);
+            printHashset(namedSet->set);
         } else if (strcmp(command, "srem") == 0) {
-            scanf("%s", key);
-            int ans = SREM(set, key);
-            printHashset(set);
+            scanf("%s %s", dsName, key);
+            NamedHashset* namedSet = findHashset(ds, dsName);
+            if (!namedSet) {
+                printf("Error Removing Key\n");
+            } else {
+                int ans = SREM(namedSet->set, key);
+                printHashset(namedSet->set);
+            }
         } else if (strcmp(command, "sismember") == 0) {
-            scanf("%s", key);
-            int ans = SISMEMBER(set, key);
-            printf("%d\n", ans);
+            scanf("%s %s", dsName, key);
+            NamedHashset* namedSet = findHashset(ds, dsName);
+            if (!namedSet) {
+                printf("0\n");
+            } else {
+                int ans = SISMEMBER(namedSet->set, key);
+                printf("%d\n", ans);
+            }
         } else if (strcmp(command, "scard") == 0) {
-            int ans = SCARD(set);
-            printf("%d\n", ans);
+            scanf("%s", dsName);
+            NamedHashset* namedSet = findHashset(ds, dsName);
+            if (!namedSet) {
+                printf("0\n");
+            } else {
+                int ans = SCARD(namedSet->set);
+                printf("%d\n", ans);
+            }
         } else if (strcmp(command, "sinter") == 0) {
-            SADD(set, "a");
-            SADD(set, "b");
-            SADD(set, "c");
-            SADD(set, "d");
-            SADD(set1, "z");
-            SADD(set1, "z");
-            SADD(set1, "z");
-            SADD(set1, "z");
-            Hashset* inter = SINTER(set, set1);
-            printHashset(inter);
-        } else if (strcmp(command, "hello") == 0) { // Changed to lowercase to match other commands
-            testSADDResizing();
+            char dsName2[256];
+            scanf("%s %s", dsName, dsName2);
+            NamedHashset* namedSet1 = findHashset(ds, dsName);
+            NamedHashset* namedSet2 = findHashset(ds, dsName2);
+            if (!namedSet1 || !namedSet2) {
+                printf("Error performing intersection\n");
+            } else {
+                Hashset* inter = SINTER(namedSet1->set, namedSet2->set);
+                printHashset(inter);
+                freeHashset(inter);
+            }
         } else {
             printf("Unknown command\n");
         }
-
     }
-    freeList(list);
-    freeHashmap(map);
-    freeHashset(set);
+    freeDataStructures(ds);
     return 0;
 }

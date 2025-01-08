@@ -28,5 +28,4 @@ int deleteKey(Hashmap* map, char* key);
 int exists(Hashmap* map, char* key);
 
 Hashmap* resizeHashmap(Hashmap* map);
-
 #endif
