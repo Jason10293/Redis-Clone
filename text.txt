@@ -1,0 +1,21 @@
+set mymap key1 value1
+get mymap key1
+del mymap key1
+exists mymap key1
+lpush mylist value1
+lpush mylist value2
+lpush mylist value3
+lpush mylist value4
+rpush mylist value2
+lpop mylist
+rpop mylist
+sadd myset value1
+sadd myset value3
+srem myset value1
+sadd myset2 value1
+sadd myset2 value2
+sadd myset2 value3
+sismember myset value1
+sismember myset value2
+scard myset
+sinter myset myset2
