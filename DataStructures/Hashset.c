@@ -5,9 +5,10 @@
 #include "Hashset.h"
 #define DEFAULT_BUCKET_COUNT 256
 #define CAPACITY_THRESHHOLD 0.75
-Hashset* createHashset() {
+Hashset* createHashset(char* name) {
     Hashset* set = malloc(sizeof(Hashset));
-    set->map = createHashmap(DEFAULT_BUCKET_COUNT);
+    set->map = createHashmap(DEFAULT_BUCKET_COUNT, name);
+    strcpy(set->name, name);
     return set;
 }
 
@@ -72,7 +73,11 @@ Hashset* SINTER(Hashset* set1, Hashset* set2) {
 
     int size = 0;
     Hashset* inter = malloc(sizeof(Hashset));
-    Hashmap* map = createHashmap(minBucketCount);
+    char* interName = malloc(strlen(set1->map->name) + strlen(set2->map->name) + 1);
+    interName[0] = '\0';
+    strcat(interName, set1->map->name);
+    strcat(interName, set2->map->name);
+    Hashmap* map = createHashmap(minBucketCount, interName);
     inter->map = map;
     for (int i = 0; i < minBucketCount; i++) {
         if ((set1->map->buckets[i]->head && set2->map->buckets[i]->head)) {

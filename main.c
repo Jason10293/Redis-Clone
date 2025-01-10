@@ -14,26 +14,11 @@ void toLower(char* s) {
 }
 
 typedef struct {
-    char name[256];
-    Hashmap* map;
-} NamedHashmap;
-
-typedef struct {
-    char name[256];
-    List* list;
-} NamedList;
-
-typedef struct {
-    char name[256];
-    Hashset* set;
-} NamedHashset;
-
-typedef struct {
-    NamedHashmap* maps;
+    Hashmap** maps;
     int mapCount;
-    NamedList* lists;
+    List** lists;
     int listCount;
-    NamedHashset* sets;
+    Hashset** sets;
     int setCount;
 } DataStructures;
 
@@ -50,13 +35,13 @@ DataStructures* createDataStructures() {
 
 void freeDataStructures(DataStructures* ds) {
     for (int i = 0; i < ds->mapCount; i++) {
-        freeHashmap(ds->maps[i].map);
+        freeHashmap(ds->maps[i]);
     }
     for (int i = 0; i < ds->listCount; i++) {
-        freeList(ds->lists[i].list);
+        freeList(ds->lists[i]); // changed to free each List* directly
     }
     for (int i = 0; i < ds->setCount; i++) {
-        freeHashset(ds->sets[i].set);
+        freeHashset(ds->sets[i]);
     }
     free(ds->maps);
     free(ds->lists);
@@ -64,31 +49,38 @@ void freeDataStructures(DataStructures* ds) {
     free(ds);
 }
 
-NamedHashmap* findHashmap(DataStructures* ds, const char* name) {
+Hashmap* findHashmap(DataStructures* ds, const char* name) {
     for (int i = 0; i < ds->mapCount; i++) {
-        if (strcmp(ds->maps[i].name, name) == 0) {
-            return &ds->maps[i];
+        if (strcmp(ds->maps[i]->name, name) == 0) {
+            return ds->maps[i];
         }
     }
     return NULL;
 }
 
-NamedList* findList(DataStructures* ds, const char* name) {
+List* findList(DataStructures* ds, const char* name) {
     for (int i = 0; i < ds->listCount; i++) {
-        if (strcmp(ds->lists[i].name, name) == 0) {
-            return &ds->lists[i];
+        if (strcmp(ds->lists[i]->name, name) == 0) { // changed to ds->lists[i]->name
+            return ds->lists[i];
         }
     }
     return NULL;
 }
 
-NamedHashset* findHashset(DataStructures* ds, const char* name) {
+Hashset* findHashset(DataStructures* ds, const char* name) {
     for (int i = 0; i < ds->setCount; i++) {
-        if (strcmp(ds->sets[i].name, name) == 0) {
-            return &ds->sets[i];
+        if (strcmp(ds->sets[i]->name, name) == 0) {
+            return ds->sets[i];
         }
     }
     return NULL;
+}
+
+List* addNewList(DataStructures* ds, char* dsName) {
+    ds->lists = realloc(ds->lists, (ds->listCount + 1) * sizeof(List*)); // changed to List*
+    ds->lists[ds->listCount] = createList(dsName);
+    ds->listCount++;
+    return ds->lists[ds->listCount - 1];
 }
 
 void executeCommand(DataStructures* ds, char** args, int count, bool fromFile, FILE* writeFile) {
@@ -98,15 +90,14 @@ void executeCommand(DataStructures* ds, char** args, int count, bool fromFile, F
         char* dsName = args[1];
         char* key = args[2];
         char* value = (count > 3 ? args[3] : NULL);
-        NamedHashmap* namedMap = findHashmap(ds, dsName);
+        Hashmap* namedMap = findHashmap(ds, dsName);
         if (!namedMap) {
-            ds->maps = realloc(ds->maps, (ds->mapCount + 1) * sizeof(NamedHashmap));
-            strcpy(ds->maps[ds->mapCount].name, dsName);
-            ds->maps[ds->mapCount].map = createHashmap(256);
-            namedMap = &ds->maps[ds->mapCount];
+            ds->maps = realloc(ds->maps, (ds->mapCount + 1) * sizeof(Hashmap*));
+            ds->maps[ds->mapCount] = createHashmap(256, dsName);
+            namedMap = ds->maps[ds->mapCount];
             ds->mapCount++;
         }
-        int res = insert(namedMap->map, key, value);
+        int res = insert(namedMap, key, value);
         fprintf(writeFile, "set %s %s %s\n", dsName, key, value);
         if (!fromFile) {
             printf("%s\n", res == 1 ? "Insertion Successful" : "Error Inserting Key and Value");
@@ -114,22 +105,22 @@ void executeCommand(DataStructures* ds, char** args, int count, bool fromFile, F
     } else if (strcmp(cmd, "get") == 0 && count >= 2) {
         char* dsName = args[1];
         char* key = args[2];
-        NamedHashmap* namedMap = findHashmap(ds, dsName);
+        Hashmap* namedMap = findHashmap(ds, dsName);
         if (!namedMap) {
-            printf("Hashmap not found\n");
+            printf("No hashmap named %s \n", dsName);
         } else {
-            char* s = get(namedMap->map, key);
+            char* s = get(namedMap, key);
             printf("%s\n", s ? s : "Key not found");
         }
     } else if (strcmp(cmd, "del") == 0 && count >= 2) {
         char* dsName = args[1];
         char* key = args[2];
-        NamedHashmap* namedMap = findHashmap(ds, dsName);
+        Hashmap* namedMap = findHashmap(ds, dsName);
         if (!namedMap) {
             printf("No hashmap named %s \n", dsName);
             return;
         }
-        int res = deleteKey(namedMap->map, key);
+        int res = deleteKey(namedMap, key);
         if (!fromFile) {
             printf("%s\n", res == 1 ? "Key Deleted" : "Error Deleting Key");
             fprintf(writeFile, "del %s %s\n", dsName, key);
@@ -137,122 +128,113 @@ void executeCommand(DataStructures* ds, char** args, int count, bool fromFile, F
     } else if (strcmp(cmd, "exists") == 0 && count >= 2) {
         char* dsName = args[1];
         char* key = args[2];
-        NamedHashmap* namedMap = findHashmap(ds, dsName);
+        Hashmap* namedMap = findHashmap(ds, dsName);
         if (!namedMap) {
-            printf("0\n");
+            printf("No hashmap named %s \n", dsName);
             return;
         }
-        printf("%d\n", exists(namedMap->map, key));
+        printf("%d\n", exists(namedMap, key));
     } else if (strcmp(cmd, "lpush") == 0 && count >= 2) {
         char* dsName = args[1];
         char* key = args[2];
-        NamedList* namedList = findList(ds, dsName);
+        List* namedList = findList(ds, dsName);
         if (!namedList) {
-            ds->lists = realloc(ds->lists, (ds->listCount + 1) * sizeof(NamedList));
-            strcpy(ds->lists[ds->listCount].name, dsName);
-            ds->lists[ds->listCount].list = createList();
-            namedList = &ds->lists[ds->listCount];
-            ds->listCount++;
+            namedList = addNewList(ds, dsName);
         }
-        LPUSH(namedList->list, key);
+        LPUSH(namedList, key);
         if (!fromFile) {
             fprintf(writeFile, "lpush %s %s\n", dsName, key);
         }
     } else if (strcmp(cmd, "rpush") == 0 && count >= 2) {
         char* dsName = args[1];
         char* key = args[2];
-        NamedList* namedList = findList(ds, dsName);
+        List* namedList = findList(ds, dsName);
         if (!namedList) {
-            ds->lists = realloc(ds->lists, (ds->listCount + 1) * sizeof(NamedList));
-            strcpy(ds->lists[ds->listCount].name, dsName);
-            ds->lists[ds->listCount].list = createList();
-            namedList = &ds->lists[ds->listCount];
-            ds->listCount++;
+            namedList = addNewList(ds, dsName);
         }
-        RPUSH(namedList->list, key);
+        RPUSH(namedList, key);
         if (!fromFile) {
             fprintf(writeFile, "rpush %s %s\n", dsName, key);
         }
     } else if (strcmp(cmd, "lpop") == 0 && count >= 1) {
         char* dsName = args[1];
-        NamedList* namedList = findList(ds, dsName);
+        List* namedList = findList(ds, dsName);
         if (!namedList) {
             printf("List is empty\n");
             return;
         }
-        char* value = LPOP(namedList->list);
+        char* value = LPOP(namedList);
         if (!fromFile) {
             printf("%s\n", value);
             fprintf(writeFile, "lpop %s\n", dsName);
         }
     } else if (strcmp(cmd, "rpop") == 0 && count >= 1) {
         char* dsName = args[1];
-        NamedList* namedList = findList(ds, dsName);
+        List* namedList = findList(ds, dsName);
         if (!namedList) {
             printf("List is empty\n");
             return;
         }
         if (!fromFile) {
-            printf("%s\n", RPOP(namedList->list));
+            printf("%s\n", RPOP(namedList));
             fprintf(writeFile, "rpop %s\n", dsName);
         }
 
     } else if (strcmp(cmd, "sadd") == 0 && count >= 2) {
         char* dsName = args[1];
         char* key = args[2];
-        NamedHashset* namedSet = findHashset(ds, dsName);
+        Hashset* namedSet = findHashset(ds, dsName);
         if (!namedSet) {
-            ds->sets = realloc(ds->sets, (ds->setCount + 1) * sizeof(NamedHashset));
-            strcpy(ds->sets[ds->setCount].name, dsName);
-            ds->sets[ds->setCount].set = createHashset();
-            namedSet = &ds->sets[ds->setCount];
+            ds->sets = realloc(ds->sets, (ds->setCount + 1) * sizeof(Hashset*));
+            ds->sets[ds->setCount] = createHashset(dsName);
+            namedSet = ds->sets[ds->setCount];
             ds->setCount++;
         }
-        int ans = SADD(namedSet->set, key);
+        int ans = SADD(namedSet, key);
         if (!fromFile) {
             fprintf(writeFile, "sadd %s %s\n", dsName, key);
         }
     } else if (strcmp(cmd, "srem") == 0 && count >= 2) {
         char* dsName = args[1];
         char* key = args[2];
-        NamedHashset* namedSet = findHashset(ds, dsName);
+        Hashset* namedSet = findHashset(ds, dsName);
         if (!namedSet) {
             printf("Error Removing Key\n");
             return;
         }
-        int ans = SREM(namedSet->set, key);
+        int ans = SREM(namedSet, key);
         if (!fromFile) {
             fprintf(writeFile, "srem %s %s\n", dsName, key);
         }
     } else if (strcmp(cmd, "sismember") == 0 && count >= 2) {
         char* dsName = args[1];
         char* key = args[2];
-        NamedHashset* namedSet = findHashset(ds, dsName);
+        Hashset* namedSet = findHashset(ds, dsName);
         if (!namedSet) {
             printf("0\n");
             return;
         }
-        int ans = SISMEMBER(namedSet->set, key);
+        int ans = SISMEMBER(namedSet, key);
         printf("%d\n", ans);
     } else if (strcmp(cmd, "scard") == 0 && count >= 1) {
         char* dsName = args[1];
-        NamedHashset* namedSet = findHashset(ds, dsName);
+        Hashset* namedSet = findHashset(ds, dsName);
         if (!namedSet) {
             printf("0\n");
             return;
         }
-        int ans = SCARD(namedSet->set);
+        int ans = SCARD(namedSet);
         printf("%d\n", ans);
     } else if (strcmp(cmd, "sinter") == 0 && count >= 2) {
         char* dsName = args[1];
         char* dsName2 = args[2];
-        NamedHashset* namedSet1 = findHashset(ds, dsName);
-        NamedHashset* namedSet2 = findHashset(ds, dsName2);
+        Hashset* namedSet1 = findHashset(ds, dsName);
+        Hashset* namedSet2 = findHashset(ds, dsName2);
         if (!namedSet1 || !namedSet2) {
             printf("Error performing intersection\n");
             return;
         }
-        Hashset* inter = SINTER(namedSet1->set, namedSet2->set);
+        Hashset* inter = SINTER(namedSet1, namedSet2);
         freeHashset(inter);
     } else if (strcmp(cmd, "clear") == 0) {
         FILE* f = fopen("text.txt", "w");

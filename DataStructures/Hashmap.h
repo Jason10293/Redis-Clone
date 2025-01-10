@@ -8,12 +8,13 @@
 struct Hashmap {
     struct LinkedList** buckets; // Each bucket will contain a linked list
     size_t size;
+    char name[256];
     int bucket_count;
 };
 
 typedef struct Hashmap Hashmap;
 
-Hashmap* createHashmap(int bucket_count);
+Hashmap* createHashmap(int bucket_count, char* name);
 
 long hashingFunction(char* s);
 

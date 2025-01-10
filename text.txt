@@ -4,7 +4,6 @@ lpush mylist value1
 lpush mylist value2
 lpush mylist value3
 lpush mylist value4
-rpush mylist value2
 lpop mylist
 rpop mylist
 sadd myset value1
@@ -13,7 +12,4 @@ srem myset value1
 sadd myset2 value1
 sadd myset2 value2
 sadd myset2 value3
-lpush mylist (null)
 lpush mylist 10
-lpop mylist
-rpush mylist 10

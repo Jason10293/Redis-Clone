@@ -7,10 +7,11 @@
 
 struct Hashset {
     Hashmap* map;
+    char name[256];
 };
 
 typedef struct Hashset Hashset;
-Hashset* createHashset();
+Hashset* createHashset(char* name);
 void freeHashset(Hashset* set);
 int SADD(Hashset* set, char* elem);
 int SREM(Hashset* set, char* elem);

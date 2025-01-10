@@ -7,7 +7,7 @@
 #define PRIME_NUM 3411949
 #define CAPACITY_THRESHHOLD 0.75
 
-Hashmap* createHashmap(int bucket_count) {
+Hashmap* createHashmap(int bucket_count, char* name) {
     LinkedList** bucketsArr = malloc(bucket_count * sizeof(LinkedList*));
     for (int i = 0; i < bucket_count; i++) {
         bucketsArr[i] = malloc(sizeof(LinkedList));
@@ -18,6 +18,7 @@ Hashmap* createHashmap(int bucket_count) {
     map->buckets = bucketsArr;
     map->size = 0;
     map->bucket_count = bucket_count;
+    strcpy(map->name, name);
     return map;
 }
 
@@ -46,9 +47,7 @@ Hashmap* resizeHashmap(Hashmap* map) {
             int new_index = hashingFunction(current->key) % new_bucket_count;
             SLL_Node* new_node = malloc(sizeof(SLL_Node));
             new_node->key = strdup(current->key);
-            if (new_node->value) {
-                new_node->value = strdup(current->value);
-            }
+            new_node->value = current->value ? strdup(current->value) : NULL;
             new_node->next = new_buckets[new_index]->head;
             new_buckets[new_index]->head = new_node;
             new_buckets[new_index]->size++;
