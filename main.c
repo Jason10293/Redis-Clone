@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h> // Added for memory management functions
+#include <stdbool.h>
 #include "DataStructures/Hashmap.h" 
 #include "DataStructures/List.h"
 #include "DataStructures/Hashset.h"
@@ -90,10 +91,9 @@ NamedHashset* findHashset(DataStructures* ds, const char* name) {
     return NULL;
 }
 
-void executeCommand(DataStructures* ds, char** args, int count) {
+void executeCommand(DataStructures* ds, char** args, int count, bool fromFile, FILE* writeFile) {
     char* cmd = args[0];
     toLower(cmd);
-
     if (strcmp(cmd, "set") == 0 && count >= 3) {
         char* dsName = args[1];
         char* key = args[2];
@@ -107,13 +107,16 @@ void executeCommand(DataStructures* ds, char** args, int count) {
             ds->mapCount++;
         }
         int res = insert(namedMap->map, key, value);
-        printf("%s\n", res == 1 ? "Insertion Successful" : "Error Inserting Key and Value");
+        fprintf(writeFile, "set %s %s %s\n", dsName, key, value);
+        if (!fromFile) {
+            printf("%s\n", res == 1 ? "Insertion Successful" : "Error Inserting Key and Value");
+        }
     } else if (strcmp(cmd, "get") == 0 && count >= 2) {
         char* dsName = args[1];
         char* key = args[2];
         NamedHashmap* namedMap = findHashmap(ds, dsName);
         if (!namedMap) {
-            printf("Key not found\n");
+            printf("Hashmap not found\n");
         } else {
             char* s = get(namedMap->map, key);
             printf("%s\n", s ? s : "Key not found");
@@ -123,10 +126,13 @@ void executeCommand(DataStructures* ds, char** args, int count) {
         char* key = args[2];
         NamedHashmap* namedMap = findHashmap(ds, dsName);
         if (!namedMap) {
-            printf("Error Deleting Key\n");
-        } else {
-            int res = deleteKey(namedMap->map, key);
+            printf("No hashmap named %s \n", dsName);
+            return;
+        }
+        int res = deleteKey(namedMap->map, key);
+        if (!fromFile) {
             printf("%s\n", res == 1 ? "Key Deleted" : "Error Deleting Key");
+            fprintf(writeFile, "del %s %s\n", dsName, key);
         }
     } else if (strcmp(cmd, "exists") == 0 && count >= 2) {
         char* dsName = args[1];
@@ -134,9 +140,9 @@ void executeCommand(DataStructures* ds, char** args, int count) {
         NamedHashmap* namedMap = findHashmap(ds, dsName);
         if (!namedMap) {
             printf("0\n");
-        } else {
-            printf("%d\n", exists(namedMap->map, key));
+            return;
         }
+        printf("%d\n", exists(namedMap->map, key));
     } else if (strcmp(cmd, "lpush") == 0 && count >= 2) {
         char* dsName = args[1];
         char* key = args[2];
@@ -149,7 +155,9 @@ void executeCommand(DataStructures* ds, char** args, int count) {
             ds->listCount++;
         }
         LPUSH(namedList->list, key);
-        printList(namedList->list);
+        if (!fromFile) {
+            fprintf(writeFile, "lpush %s %s\n", dsName, key);
+        }
     } else if (strcmp(cmd, "rpush") == 0 && count >= 2) {
         char* dsName = args[1];
         char* key = args[2];
@@ -162,25 +170,33 @@ void executeCommand(DataStructures* ds, char** args, int count) {
             ds->listCount++;
         }
         RPUSH(namedList->list, key);
-        printList(namedList->list);
+        if (!fromFile) {
+            fprintf(writeFile, "rpush %s %s\n", dsName, key);
+        }
     } else if (strcmp(cmd, "lpop") == 0 && count >= 1) {
         char* dsName = args[1];
         NamedList* namedList = findList(ds, dsName);
         if (!namedList) {
             printf("List is empty\n");
-        } else {
-            printf("%s\n", LPOP(namedList->list));
-            printList(namedList->list);
+            return;
+        }
+        char* value = LPOP(namedList->list);
+        if (!fromFile) {
+            printf("%s\n", value);
+            fprintf(writeFile, "lpop %s\n", dsName);
         }
     } else if (strcmp(cmd, "rpop") == 0 && count >= 1) {
         char* dsName = args[1];
         NamedList* namedList = findList(ds, dsName);
         if (!namedList) {
             printf("List is empty\n");
-        } else {
-            printf("%s\n", RPOP(namedList->list));
-            printList(namedList->list);
+            return;
         }
+        if (!fromFile) {
+            printf("%s\n", RPOP(namedList->list));
+            fprintf(writeFile, "rpop %s\n", dsName);
+        }
+
     } else if (strcmp(cmd, "sadd") == 0 && count >= 2) {
         char* dsName = args[1];
         char* key = args[2];
@@ -193,16 +209,20 @@ void executeCommand(DataStructures* ds, char** args, int count) {
             ds->setCount++;
         }
         int ans = SADD(namedSet->set, key);
-        printHashset(namedSet->set);
+        if (!fromFile) {
+            fprintf(writeFile, "sadd %s %s\n", dsName, key);
+        }
     } else if (strcmp(cmd, "srem") == 0 && count >= 2) {
         char* dsName = args[1];
         char* key = args[2];
         NamedHashset* namedSet = findHashset(ds, dsName);
         if (!namedSet) {
             printf("Error Removing Key\n");
-        } else {
-            int ans = SREM(namedSet->set, key);
-            printHashset(namedSet->set);
+            return;
+        }
+        int ans = SREM(namedSet->set, key);
+        if (!fromFile) {
+            fprintf(writeFile, "srem %s %s\n", dsName, key);
         }
     } else if (strcmp(cmd, "sismember") == 0 && count >= 2) {
         char* dsName = args[1];
@@ -210,19 +230,19 @@ void executeCommand(DataStructures* ds, char** args, int count) {
         NamedHashset* namedSet = findHashset(ds, dsName);
         if (!namedSet) {
             printf("0\n");
-        } else {
-            int ans = SISMEMBER(namedSet->set, key);
-            printf("%d\n", ans);
+            return;
         }
+        int ans = SISMEMBER(namedSet->set, key);
+        printf("%d\n", ans);
     } else if (strcmp(cmd, "scard") == 0 && count >= 1) {
         char* dsName = args[1];
         NamedHashset* namedSet = findHashset(ds, dsName);
         if (!namedSet) {
             printf("0\n");
-        } else {
-            int ans = SCARD(namedSet->set);
-            printf("%d\n", ans);
+            return;
         }
+        int ans = SCARD(namedSet->set);
+        printf("%d\n", ans);
     } else if (strcmp(cmd, "sinter") == 0 && count >= 2) {
         char* dsName = args[1];
         char* dsName2 = args[2];
@@ -230,17 +250,20 @@ void executeCommand(DataStructures* ds, char** args, int count) {
         NamedHashset* namedSet2 = findHashset(ds, dsName2);
         if (!namedSet1 || !namedSet2) {
             printf("Error performing intersection\n");
-        } else {
-            Hashset* inter = SINTER(namedSet1->set, namedSet2->set);
-            printHashset(inter);
-            freeHashset(inter);
+            return;
         }
+        Hashset* inter = SINTER(namedSet1->set, namedSet2->set);
+        freeHashset(inter);
+    } else if (strcmp(cmd, "clear") == 0) {
+        FILE* f = fopen("text.txt", "w");
+        fclose(f);
+        printf("Cached data cleared");
     } else {
         printf("Unknown command\n");
     }
 }
 
-void parseAndExecute(DataStructures* ds, char* line) {
+void parseAndExecute(DataStructures* ds, char* line, bool fromFile, FILE* writeFile) {
     char* args[5] = { 0 }; // up to 4 tokens plus NULL
     int count = 0;
     args[count] = strtok(line, " \t\r\n");
@@ -257,19 +280,20 @@ void parseAndExecute(DataStructures* ds, char* line) {
     }
 
     // Pass tokens to executeCommand
-    executeCommand(ds, args, count);
+    executeCommand(ds, args, count, fromFile, writeFile);
 }
 
 int main(int argc, char* argv[]) {
     DataStructures* ds = createDataStructures();
     char line[1024];
 
-    FILE* file = fopen("text.txt", "r");
+    FILE* file = fopen("text.txt", "r+");
     if (file) {
         while (fgets(line, sizeof(line), file)) {
-            parseAndExecute(ds, line);
+            parseAndExecute(ds, line, true, file);
         }
-        fclose(file);
+        printf("Data Loaded\n");
+        fseek(file, 0, SEEK_END); // Move to end so new writes append
     }
 
     while (1) {
@@ -277,9 +301,10 @@ int main(int argc, char* argv[]) {
         if (!fgets(line, sizeof(line), stdin)) {
             break; // no more input
         }
-        parseAndExecute(ds, line);
+        parseAndExecute(ds, line, false, file);
     }
 
     freeDataStructures(ds);
+    if (file) fclose(file); // Close after main loop
     return 0;
 }

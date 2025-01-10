@@ -1,7 +1,5 @@
 set mymap key1 value1
-get mymap key1
 del mymap key1
-exists mymap key1
 lpush mylist value1
 lpush mylist value2
 lpush mylist value3
@@ -15,7 +13,7 @@ srem myset value1
 sadd myset2 value1
 sadd myset2 value2
 sadd myset2 value3
-sismember myset value1
-sismember myset value2
-scard myset
-sinter myset myset2
+lpush mylist (null)
+lpush mylist 10
+lpop mylist
+rpush mylist 10
