@@ -85,11 +85,18 @@ List* addNewList(DataStructures* ds, char* dsName) {
 
 void executeCommand(DataStructures* ds, char** args, int count, bool fromFile, FILE* writeFile) {
     char* cmd = args[0];
+    char* dsName = args[1];
+    char* element = NULL; // renamed from key
+    char* data = NULL;
+    if (args[2]) {
+        element = args[2]; // renamed from key
+    }
+    if (args[3]) {
+        data = args[3];
+    }
     toLower(cmd);
     if (strcmp(cmd, "set") == 0 && count >= 3) {
-        char* dsName = args[1];
-        char* key = args[2];
-        char* value = (count > 3 ? args[3] : NULL);
+        char* data = (count > 3 ? args[3] : NULL); // renamed from value
         Hashmap* namedMap = findHashmap(ds, dsName);
         if (!namedMap) {
             ds->maps = realloc(ds->maps, (ds->mapCount + 1) * sizeof(Hashmap*));
@@ -97,79 +104,67 @@ void executeCommand(DataStructures* ds, char** args, int count, bool fromFile, F
             namedMap = ds->maps[ds->mapCount];
             ds->mapCount++;
         }
-        int res = insert(namedMap, key, value);
-        fprintf(writeFile, "set %s %s %s\n", dsName, key, value);
+        int res = insert(namedMap, element, data); // renamed from value
+        fprintf(writeFile, "set %s %s %s\n", dsName, element, data); // renamed from value
         if (!fromFile) {
             printf("%s\n", res == 1 ? "Insertion Successful" : "Error Inserting Key and Value");
         }
     } else if (strcmp(cmd, "get") == 0 && count >= 2) {
-        char* dsName = args[1];
-        char* key = args[2];
         Hashmap* namedMap = findHashmap(ds, dsName);
         if (!namedMap) {
             printf("No hashmap named %s \n", dsName);
         } else {
-            char* s = get(namedMap, key);
+            char* s = get(namedMap, element); // renamed from key
             printf("%s\n", s ? s : "Key not found");
         }
     } else if (strcmp(cmd, "del") == 0 && count >= 2) {
-        char* dsName = args[1];
-        char* key = args[2];
         Hashmap* namedMap = findHashmap(ds, dsName);
         if (!namedMap) {
             printf("No hashmap named %s \n", dsName);
             return;
         }
-        int res = deleteKey(namedMap, key);
+        int res = deleteKey(namedMap, element); // renamed from key
         if (!fromFile) {
             printf("%s\n", res == 1 ? "Key Deleted" : "Error Deleting Key");
-            fprintf(writeFile, "del %s %s\n", dsName, key);
+            fprintf(writeFile, "del %s %s\n", dsName, element); // renamed from key
         }
     } else if (strcmp(cmd, "exists") == 0 && count >= 2) {
-        char* dsName = args[1];
-        char* key = args[2];
         Hashmap* namedMap = findHashmap(ds, dsName);
         if (!namedMap) {
             printf("No hashmap named %s \n", dsName);
             return;
         }
-        printf("%d\n", exists(namedMap, key));
+        printf("%d\n", exists(namedMap, element)); // renamed from key
     } else if (strcmp(cmd, "lpush") == 0 && count >= 2) {
-        char* dsName = args[1];
-        char* key = args[2];
         List* namedList = findList(ds, dsName);
         if (!namedList) {
             namedList = addNewList(ds, dsName);
         }
-        LPUSH(namedList, key);
+        LPUSH(namedList, element); // renamed from key
         if (!fromFile) {
-            fprintf(writeFile, "lpush %s %s\n", dsName, key);
+            fprintf(writeFile, "lpush %s %s\n", dsName, element); // renamed from key
         }
     } else if (strcmp(cmd, "rpush") == 0 && count >= 2) {
-        char* dsName = args[1];
-        char* key = args[2];
         List* namedList = findList(ds, dsName);
         if (!namedList) {
             namedList = addNewList(ds, dsName);
         }
-        RPUSH(namedList, key);
+        RPUSH(namedList, element); // renamed from key
         if (!fromFile) {
-            fprintf(writeFile, "rpush %s %s\n", dsName, key);
+            fprintf(writeFile, "rpush %s %s\n", dsName, element); // renamed from key
         }
     } else if (strcmp(cmd, "lpop") == 0 && count >= 1) {
-        char* dsName = args[1];
         List* namedList = findList(ds, dsName);
         if (!namedList) {
             printf("List is empty\n");
             return;
         }
-        char* value = LPOP(namedList);
+        char* data = LPOP(namedList); // renamed from value
         if (!fromFile) {
-            printf("%s\n", value);
+            printf("%s\n", data); // renamed from value
             fprintf(writeFile, "lpop %s\n", dsName);
         }
     } else if (strcmp(cmd, "rpop") == 0 && count >= 1) {
-        char* dsName = args[1];
         List* namedList = findList(ds, dsName);
         if (!namedList) {
             printf("List is empty\n");
@@ -181,8 +176,6 @@ void executeCommand(DataStructures* ds, char** args, int count, bool fromFile, F
         }
 
     } else if (strcmp(cmd, "sadd") == 0 && count >= 2) {
-        char* dsName = args[1];
-        char* key = args[2];
         Hashset* namedSet = findHashset(ds, dsName);
         if (!namedSet) {
             ds->sets = realloc(ds->sets, (ds->setCount + 1) * sizeof(Hashset*));
@@ -190,34 +183,29 @@ void executeCommand(DataStructures* ds, char** args, int count, bool fromFile, F
             namedSet = ds->sets[ds->setCount];
             ds->setCount++;
         }
-        int ans = SADD(namedSet, key);
+        int ans = SADD(namedSet, element); // renamed from key
         if (!fromFile) {
-            fprintf(writeFile, "sadd %s %s\n", dsName, key);
+            fprintf(writeFile, "sadd %s %s\n", dsName, element); // renamed from key
         }
     } else if (strcmp(cmd, "srem") == 0 && count >= 2) {
-        char* dsName = args[1];
-        char* key = args[2];
         Hashset* namedSet = findHashset(ds, dsName);
         if (!namedSet) {
             printf("Error Removing Key\n");
             return;
         }
-        int ans = SREM(namedSet, key);
+        int ans = SREM(namedSet, element); // renamed from key
         if (!fromFile) {
-            fprintf(writeFile, "srem %s %s\n", dsName, key);
+            fprintf(writeFile, "srem %s %s\n", dsName, element); // renamed from key
         }
     } else if (strcmp(cmd, "sismember") == 0 && count >= 2) {
-        char* dsName = args[1];
-        char* key = args[2];
         Hashset* namedSet = findHashset(ds, dsName);
         if (!namedSet) {
             printf("0\n");
             return;
         }
-        int ans = SISMEMBER(namedSet, key);
+        int ans = SISMEMBER(namedSet, element); // renamed from key
         printf("%d\n", ans);
     } else if (strcmp(cmd, "scard") == 0 && count >= 1) {
-        char* dsName = args[1];
         Hashset* namedSet = findHashset(ds, dsName);
         if (!namedSet) {
             printf("0\n");
@@ -226,7 +214,6 @@ void executeCommand(DataStructures* ds, char** args, int count, bool fromFile, F
         int ans = SCARD(namedSet);
         printf("%d\n", ans);
     } else if (strcmp(cmd, "sinter") == 0 && count >= 2) {
-        char* dsName = args[1];
         char* dsName2 = args[2];
         Hashset* namedSet1 = findHashset(ds, dsName);
         Hashset* namedSet2 = findHashset(ds, dsName2);
@@ -239,7 +226,7 @@ void executeCommand(DataStructures* ds, char** args, int count, bool fromFile, F
     } else if (strcmp(cmd, "clear") == 0) {
         FILE* f = fopen("text.txt", "w");
         fclose(f);
-        printf("Cached data cleared");
+        printf("Cached data cleared\n");
     } else {
         printf("Unknown command\n");
     }
@@ -281,7 +268,7 @@ int main(int argc, char* argv[]) {
     while (1) {
         printf("Enter command: ");
         if (!fgets(line, sizeof(line), stdin)) {
-            break; // no more input
+            break;
         }
         parseAndExecute(ds, line, false, file);
     }
